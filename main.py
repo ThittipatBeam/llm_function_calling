@@ -124,6 +124,7 @@ if __name__ == "__main__":
 
     a = prompt_ai(messages="สวัสดีครับ")
     print(a)
+    print("beam")
 
 
 
