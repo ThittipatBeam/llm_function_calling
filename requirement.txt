@@ -1,0 +1,7 @@
+requests
+python-dotenv
+transformers
+langchain
+langchain-huggingface
+huggingface_hub
+pydantic
