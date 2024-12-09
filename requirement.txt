@@ -5,3 +5,5 @@ langchain
 langchain-huggingface
 huggingface_hub
 pydantic
+accelerate
+streamlit
