@@ -10,7 +10,7 @@ from langchain_huggingface import HuggingFacePipeline, ChatHuggingFace, HuggingF
 from pydantic import BaseModel, Field
 
 from huggingface_hub import login
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 load_dotenv()
 
@@ -58,16 +58,26 @@ def load_local_model():
     #         do_sample=False
     #     )
 
-    return HuggingFacePipeline.from_model_id(
-            model_id=llm_model,
-            task="text-generation",
-            pipeline_kwargs={
-                "max_new_tokens": 1024,
-                "cache_dir": "/mnt/c/Users/beam_/Desktop/llm_function-calling/model"
-                # "top_k": 50,
-                # "temperature": 0.4
-            },
-        )
+    # return HuggingFacePipeline.from_model_id(
+    #         model_id=llm_model,
+    #         task="text-generation",
+    #         pipeline_kwargs={
+    #             "max_new_tokens": 1024,
+    #             # "top_k": 50,
+    #             # "temperature": 0.4
+    #         },
+    #     )
+
+    tokenizer = AutoTokenizer.from_pretrained(llm_model)
+    model = AutoModelForCausalLM.from_pretrained(llm_model)
+    pipe = pipeline("text-generation",
+                    model=model, 
+                    tokenizer=tokenizer, 
+                    max_new_tokens=1024)
+    hf = HuggingFacePipeline(pipeline=pipe)
+    
+    return hf
+
 
 llm = load_local_model()
 
