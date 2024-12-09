@@ -5,11 +5,12 @@ from typing import List
 
 from langchain_huggingface.llms import HuggingFacePipeline
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_huggingface import HuggingFacePipeline, ChatHuggingFace
+from langchain_huggingface import HuggingFacePipeline, ChatHuggingFace, HuggingFaceEndpoint
 
 from pydantic import BaseModel, Field
 
 from huggingface_hub import login
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 load_dotenv()
 
@@ -49,7 +50,14 @@ def get_current_weather(city_name: str):
 
 # @st.cache_resource
 def load_local_model():
-        
+
+    # return HuggingFaceEndpoint(
+    #         repo_id=llm_model,
+    #         task="text-generation",
+    #         max_new_tokens=1024,
+    #         do_sample=False
+    #     )
+
     return HuggingFacePipeline.from_model_id(
             model_id=llm_model,
             task="text-generation",
@@ -60,7 +68,6 @@ def load_local_model():
                 # "temperature": 0.4
             },
         )
-
 
 llm = load_local_model()
 
@@ -102,6 +109,7 @@ Don't repeat an action. If a thought tells you that you already took an action f
 """  
 
 
+
 def prompt_ai(messages, nested_calls=0, invoked_tools=[]):
 
     if nested_calls > 3:
@@ -113,10 +121,11 @@ def prompt_ai(messages, nested_calls=0, invoked_tools=[]):
 
     try:
         ai_response = chatbot.invoke(messages)
+        return ai_response
     except:
         return prompt_ai(messages, nested_calls + 1)
     
-    print(ai_response)
+
 
 
 
