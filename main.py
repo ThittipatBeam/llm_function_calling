@@ -47,7 +47,7 @@ def get_current_weather(city_name: str):
 
         api_response = requests.get(url)
         print(api_response.content)
-        return "API collect weather data successfully!"
+        return api_response.content
     
     except Exception as e:
 
@@ -81,8 +81,9 @@ def load_local_model():
     model = AutoModelForCausalLM.from_pretrained(llm_model, device_map="auto")
     pipe = pipeline("text-generation",
                     model=model, 
-                    tokenizer=tokenizer, 
+                    tokenizer=tokenizer,
                     max_new_tokens=1024,
+                    return_full_text=False
                     )
     hf = HuggingFacePipeline(pipeline=pipe)
     
@@ -93,7 +94,7 @@ llm = load_local_model()
 
 
 available_tools = {
-    "get current weather": get_current_weather
+    "get_current_weather": get_current_weather
 }
 
 tool_descriptions = [f"{name}:\n{func.__doc__}\n\n" for name, func in available_tools.items()]
@@ -143,6 +144,7 @@ def prompt_ai(messages, nested_calls=0, invoked_tools=[]):
         ai_response = chatbot.invoke(messages)
     except:
         return prompt_ai(messages, nested_calls + 1)
+    
     print(ai_response)
 
     has_tool_calls = len(ai_response["tool_calls"]) > 0
@@ -154,8 +156,8 @@ def prompt_ai(messages, nested_calls=0, invoked_tools=[]):
                 selected_tool = available_tools[tool_name]
                 tool_output = selected_tool(**tool_call["args"])
 
-                messages.append(AIMessage(content=f"Thought: - I called {tool_name} with args {tool_call['args']} and got back: {tool_output}."))  
-                invoked_tools.append(str(tool_call))  
+                messages.append(HumanMessage(content=f"Thought: - I called {tool_name} with args {tool_call['args']} and got back: {tool_output}."))  
+                invoked_tools.append(str(tool_call))
             else:
                 return ai_response          
 
@@ -164,19 +166,13 @@ def prompt_ai(messages, nested_calls=0, invoked_tools=[]):
 
     return ai_response
 
-from langchain_core.prompts import PromptTemplate
-
 
 def prompt_ai_test(messages):
 
-    # template = tool_text
-    # prompt = PromptTemplate.from_template(template)
     chatbot = ChatHuggingFace(llm=llm)
+    ai_response = chatbot.invoke(messages)
 
-    chain = chatbot
-    answer = chain.invoke(messages)
-
-    return print(answer.content)
+    print(ai_response)
 
 
 def main():
@@ -190,7 +186,7 @@ def main():
 
     # Display chat messages from history on app rerun
     for message in st.session_state.messages:
-        message_json = json.loads(message)
+        message_json = json.loads(message.json())
         message_type = message_json["type"]
         message_content = message_json["content"]
         if message_type in ["human", "ai", "system"] and not message_content.startswith("Thought:"):
@@ -213,5 +209,5 @@ def main():
     
 
 if __name__ == "__main__":
-    # main()
-    prompt_ai_test("Hello")
+    main()
+
